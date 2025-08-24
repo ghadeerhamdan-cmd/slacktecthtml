@@ -21,7 +21,7 @@ def namespace = "dev"
 def helmDir = "/helm"
 
 node {
-  withCredentials([string(credentialsId: 'foodics-slack-online-deployments', variable: 'SLACK_WEBHOOK')]) {
+  withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
     try {
       notifyBuild('STARTED')
       stage('cleanup') {
@@ -63,6 +63,12 @@ node {
 }
 
 def notifyBuild(String buildStatus = 'STARTED') {
+  // Skip notification if webhook is not available
+  if (!env.SLACK_WEBHOOK) {
+    echo "Skipping Slack notification - webhook not configured"
+    return
+  }
+  
   // build status of null means successful
   buildStatus = buildStatus ?: 'SUCCESSFUL'
 
