@@ -1,33 +1,28 @@
 # Override the default helm chart name
 nameOverride: &nameOverride "slashtec-app"
-
 # Override the default helm chart full name
 fullnameOverride: &fullnameOverride "slashtec-app"
-
 # Specify the cluster name
 cluster: &cluster "ghadeer"
-
 # Specify the environment name (production, staging, prodelopment, etc.)
 environment: &environment "dev"
-
 # Labels to attach to all Kubernetes resources created by this chart
 commonLabels:
   app_name: *nameOverride
   app_env: *environment
   app: *nameOverride
 selectorLabels:
-      app_name: task-test-app
+  app_name: task-test-app
 # Configuration for the service account
 serviceAccount:
   create: true
   annotations: {}
   name: *nameOverride
-  multiServiceAccounts: 
+  multiServiceAccounts:
     enabled: false
     # Example of multiple service accounts
     # names:
     #   - example-service-account
-
 # Deployment configuration
 deployment:
   enabled: true
@@ -37,7 +32,7 @@ deployment:
   image:
     repository: 727245885999.dkr.ecr.ap-south-1.amazonaws.com/ghadeerecr
     pullPolicy: Always
-    tag: "dev-latest"
+    tag: "dev-13"
   livenessProbe:
     httpGet:
       path: /
@@ -62,7 +57,7 @@ deployment:
     enabled: false
   podSecurityContext: {}
   securityContext: {}
-  resources: 
+  resources:
     requests:
       memory: 64Mi
       cpu: 10m
@@ -134,14 +129,14 @@ cronjobs:
 configMap:
   config:
     suffix: config
-    data: 
+    data:
       App: *nameOverride
       Description: Generic description
 service:
   enabled: true
   type: ClusterIP
   name: *nameOverride
-  port: 
+  port:
     - port: 80
       targetPort: 80
       protocol: TCP
@@ -157,23 +152,23 @@ ingress:
     - host: slashtecapp-public.cloud
       http:
         paths:
-        - backend:
-            service:
-              name: *nameOverride
-              port:
-                number: 80
-          path: /
-          pathType: ImplementationSpecific
+          - backend:
+              service:
+                name: *nameOverride
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
     - host: slashtecapp-internal.cloud
       http:
         paths:
-        - backend:
-            service:
-              name: *nameOverride
-              port:
-                number: 80
-          path: /
-          pathType: ImplementationSpecific
+          - backend:
+              service:
+                name: *nameOverride
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
     enabled: false
 # ExternalSecret configuration
@@ -183,11 +178,10 @@ externalSecret:
   kind: ClusterSecretStore
   secretStore: drone-secret-store
   secretPath: /path/to/external/secret
-
 serviceMonitor:
- enabled: false
+  enabled: false
 podMonitor:
- enabled: false
+  enabled: false
 volumes:
   enabled: false
 # Autoscaling configuration
@@ -202,44 +196,42 @@ autoscaling:
   # Example of Autoscaling configuration
   # targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
-
 # Database migration configuration
 goDBMigration:
-       enabled: false
+  enabled: false
 rustDBMigration:
   enabled: false
 runCommandsBeforeDeploy:
   enabled: false
-  backoffLimit: 3  # Number of retries before considering the job failed
+  backoffLimit: 3 # Number of retries before considering the job failed
   command: ["/bin/bash"]
-  args: 
-   - -c
-   - cd /var/www/html && /usr/local/bin/php /var/www/html/artisan migrate --force && /usr/local/bin/php /var/www/html/artisan storage:link
-
-  # Example of Database migration configuration
-  # replicaCount: 1
-  # imagePullSecrets:
-  #   - name: example-image-pull-secret
-  # image:
-  #   repository: example-repository
-  #   pullPolicy: IfNotPresent
-  #   tag: example-ta:wqg
-  # livenessProbe: {}
-  # readinessProbe: {}
-  # startupProbe: {}
-  # podAnnotations: {}
-  # podSecurityContext: {}
-  # securityContext: {}
-  # resources: 
-  #   requests:
-  #     memory: example-memory-request
-  #     cpu: example-cpu-request
-  #   limits:
-  #     memory: example-memory-limit
-  #     cpu: example-cpu-limit
-  # nodeSelector: {}
-  # tolerations: []
-  # affinity: {}
-  # envFrom:
-  #   - type: configmap
-  #     suffix: example-configmap
+  args:
+    - -c
+    - cd /var/www/html && /usr/local/bin/php /var/www/html/artisan migrate --force && /usr/local/bin/php /var/www/html/artisan storage:link
+# Example of Database migration configuration
+# replicaCount: 1
+# imagePullSecrets:
+#   - name: example-image-pull-secret
+# image:
+#   repository: example-repository
+#   pullPolicy: IfNotPresent
+#   tag: example-ta:wqg
+# livenessProbe: {}
+# readinessProbe: {}
+# startupProbe: {}
+# podAnnotations: {}
+# podSecurityContext: {}
+# securityContext: {}
+# resources: 
+#   requests:
+#     memory: example-memory-request
+#     cpu: example-cpu-request
+#   limits:
+#     memory: example-memory-limit
+#     cpu: example-cpu-limit
+# nodeSelector: {}
+# tolerations: []
+# affinity: {}
+# envFrom:
+#   - type: configmap
+#     suffix: example-configmap
