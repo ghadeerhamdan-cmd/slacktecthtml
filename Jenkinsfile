@@ -21,44 +21,65 @@ def namespace = "dev"
 def helmDir = "/helm"
 
 node {
-  withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
+  try {
+    // Try to get credentials, but continue without them if not found
     try {
-      notifyBuild('STARTED')
-      stage('cleanup') {
-        cleanWs()
+      withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
+        notifyBuild('STARTED')
       }
-      stage ("Get the app code") {
-        checkout([$class: 'GitSCM', branches: [[name: "${branchName}"]] , extensions: [], userRemoteConfigs: [[ url: "${gitUrlCode}"]]])
-        sh "rm -rf ~/workspace/\"${JOB_NAME}\"/slashtec"
-        sh "mkdir ~/workspace/\"${JOB_NAME}\"/slashtec  ; cd slashtec ; git clone -b main ${gitUrl} "
-        sh("cp ${slashtecDir}/docker/Dockerfile ${dockerfile}")
-        sh("cp -r  ${slashtecDir}/docker/* .")
-        sh("cp -r  ${slashtecDir}/files/* .")
-      }
-      stage("Get the env variables from App") {
-        sh "aws appconfig get-configuration --application ${applicationName} --environment ${envName} --configuration ${configName} --client-id ${clientId} .env --region ${awsRegion}"
-      }
-      stage('login to ecr') {
-        sh("aws ecr get-login-password --region ${awsRegion}  | docker login --username AWS --password-stdin ${ecrUrl}")
-      }
-      stage('Build Docker Image') {
-        sh("docker build -t ${ecrUrl}/${serviceName}:${imageTag} -f ${dockerfile} .")
-      }
-      stage('Push Docker Image To ECR') {
-        sh("docker push ${ecrUrl}/${serviceName}:${imageTag}")
-      }
-      stage('Clean docker images') {
-        sh("docker rmi -f ${ecrUrl}/${serviceName}:${imageTag} || :")
-      }
-      stage ("Deploy ${serviceName} to ${EnvName} Environment") {
-        sh ("cd slashtec/${helmDir}; pathEnv=\".deployment.image.tag\" valueEnv=\"${imageTag}\" yq 'eval(strenv(pathEnv)) = strenv(valueEnv)' -i values.yaml ; cat values.yaml")
-        sh ("cd slashtec/${helmDir}; git pull ; git add values.yaml; git commit -m 'update image tag' ;git push ${gitUrl}")
-      }
-    } catch (e) {
-      currentBuild.result = "FAILED"
-      notifyBuild(currentBuild.result)
-      throw e
+    } catch (org.jenkinsci.plugins.credentials.common.CredentialsNotFoundException e) {
+      echo "Warning: Slack webhook credentials not found, continuing without notifications"
     }
+    
+    stage('cleanup') {
+      cleanWs()
+    }
+    stage ("Get the app code") {
+      checkout([$class: 'GitSCM', branches: [[name: "${branchName}"]] , extensions: [], userRemoteConfigs: [[ url: "${gitUrlCode}"]]])
+      sh "rm -rf ~/workspace/\"${JOB_NAME}\"/slashtec"
+      sh "mkdir ~/workspace/\"${JOB_NAME}\"/slashtec  ; cd slashtec ; git clone -b main ${gitUrl} "
+      sh("cp ${slashtecDir}/docker/Dockerfile ${dockerfile}")
+      sh("cp -r  ${slashtecDir}/docker/* .")
+      sh("cp -r  ${slashtecDir}/files/* .")
+    }
+    stage("Get the env variables from App") {
+      sh "aws appconfig get-configuration --application ${applicationName} --environment ${envName} --configuration ${configName} --client-id ${clientId} .env --region ${awsRegion}"
+    }
+    stage('login to ecr') {
+      sh("aws ecr get-login-password --region ${awsRegion}  | docker login --username AWS --password-stdin ${ecrUrl}")
+    }
+    stage('Build Docker Image') {
+      sh("docker build -t ${ecrUrl}/${serviceName}:${imageTag} -f ${dockerfile} .")
+    }
+    stage('Push Docker Image To ECR') {
+      sh("docker push ${ecrUrl}/${serviceName}:${imageTag}")
+    }
+    stage('Clean docker images') {
+      sh("docker rmi -f ${ecrUrl}/${serviceName}:${imageTag} || :")
+    }
+    stage ("Deploy ${serviceName} to ${EnvName} Environment") {
+      sh ("cd slashtec/${helmDir}; pathEnv=\".deployment.image.tag\" valueEnv=\"${imageTag}\" yq 'eval(strenv(pathEnv)) = strenv(valueEnv)' -i values.yaml ; cat values.yaml")
+      sh ("cd slashtec/${helmDir}; git pull ; git add values.yaml; git commit -m 'update image tag' ;git push ${gitUrl}")
+    }
+    
+    try {
+      withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
+        notifyBuild('SUCCESSFUL')
+      }
+    } catch (org.jenkinsci.plugins.credentials.common.CredentialsNotFoundException e) {
+      echo "Pipeline completed successfully"
+    }
+    
+  } catch (e) {
+    currentBuild.result = "FAILED"
+    try {
+      withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')]) {
+        notifyBuild(currentBuild.result)
+      }
+    } catch (org.jenkinsci.plugins.credentials.common.CredentialsNotFoundException notificationError) {
+      echo "Pipeline failed: ${e.getMessage()}"
+    }
+    throw e
   }
 }
 
@@ -93,3 +114,4 @@ def notifyBuild(String buildStatus = 'STARTED') {
   // Send notifications
   slackSend (color: colorCode, message: summary)
 }
+
