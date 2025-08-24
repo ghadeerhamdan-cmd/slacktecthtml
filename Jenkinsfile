@@ -34,7 +34,7 @@ node {
     }
     
     stage("Get the env variables from App") {
-      sh "aws appconfig get-configuration --application ${applicationName} --environment ${envName} --configuration ${configName} --client-id ${clientId} .env --region ${awsRegion}"
+      sh "aws appconfig get-configuration --application \"${applicationName}\" --environment ${envName} --configuration ${configName} --client-id \"${clientId}\" .env --region ${awsRegion}"
     }
     
     stage('login to ecr') {
