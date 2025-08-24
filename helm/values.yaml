@@ -30,24 +30,17 @@ serviceAccount:
 
 # Deployment configuration
 deployment:
-  version: "dev-057533f-204"
-  postStartCommand: "composer dumpautoload"
   enabled: true
   replicaCount: 1
   revisionHistoryLimit: 3
-  imagePullSecrets:
-    - name: docker    ### if required
+  imagePullSecrets: []
   image:
-    repository: 
+    repository: 727245885999.dkr.ecr.ap-south-1.amazonaws.com/ghadeerecr
     pullPolicy: Always
-    tag: "dev-057533f-204"
-  volumeMounts:
-    - mountPath: /etc/localtime
-      name: tz-config
-#  envFrom:
+    tag: "dev-latest"
   livenessProbe:
     httpGet:
-      path: /api/v1/test
+      path: /
       port: 80
     initialDelaySeconds: 10
     periodSeconds: 15
@@ -55,7 +48,7 @@ deployment:
     timeoutSeconds: 30
   readinessProbe:
     httpGet:
-      path: /api/v1/test
+      path: /
       port: 80
     initialDelaySeconds: 5
     periodSeconds: 5
@@ -71,26 +64,15 @@ deployment:
   securityContext: {}
   resources: 
     requests:
-      memory: 256Mi
-      cpu: 50m
+      memory: 64Mi
+      cpu: 10m
     limits:
-      memory: 3000Mi
-      cpu: 1000m
+      memory: 128Mi
+      cpu: 100m
   nodeSelector: {}
   tolerations: []
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: name
-            operator: In
-            values:
-            - PROD-Workers
-  volumes:
-    - name: tz-config
-      hostPath:
-        path: /usr/share/zoneinfo/Asia/Riyadh
+  affinity: {}
+  volumes: []
 StatefulSet:
   enabled: false
 cronjobs:
@@ -156,7 +138,7 @@ configMap:
       App: *nameOverride
       Description: Generic description
 service:
-  enabled: false
+  enabled: true
   type: ClusterIP
   name: *nameOverride
   port: 
@@ -210,9 +192,9 @@ volumes:
   enabled: false
 # Autoscaling configuration
 autoscaling:
-  enabled: true
-  minReplicas: 5
-  maxReplicas: 10
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
   targetCPUScaling: 80
   targetMemScaling: 80
   customTargets: []
