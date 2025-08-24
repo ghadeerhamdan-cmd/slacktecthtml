@@ -30,7 +30,6 @@ node {
       sh "rm -rf ~/workspace/\"${JOB_NAME}\"/slashtec"
       sh "mkdir ~/workspace/\"${JOB_NAME}\"/slashtec  ; cd slashtec ; git clone -b main ${gitUrl} "
       sh("cp ${slashtecDir}/dockerfile/Dockerfile ${dockerfile}")
-      sh("cp -r  ${slashtecDir}/dockerfile/* .")
       sh("cp ${slashtecDir}/index.html .")
     }
     
