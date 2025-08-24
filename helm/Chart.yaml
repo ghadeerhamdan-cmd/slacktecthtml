@@ -1,0 +1,7 @@
+apiVersion: v2
+name: task-test-app
+description: Task Test App - Simple static web page with nginx
+icon: "https://helm.sh/img/helm.svg"
+type: application
+version: "1.0.0"
+appVersion: "1.0.0"

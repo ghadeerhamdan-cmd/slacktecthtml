@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: preprod-slacktecthtml-service
+  namespace: argocd
+spec:
+  syncPolicy:
+    automated: {}
+  destination:
+    namespace: default
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: helm/helm
+    repoURL: https://github.com/ghadeerhamdan-cmd/slacktecthtml.git
+    targetRevision: main

@@ -1,0 +1,41 @@
+{{- if .Values.runCommandsBeforeDeploy.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "app.fullname" . }}-db-migration-{{ now | date "20060102150405" }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync              # Run this job before syncing other resources
+    argocd.argoproj.io/sync-wave: "-1"            # Run in an earlier sync wave
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation # Delete the previous hook before creating a new one
+    argocd.argoproj.io/hook-failure-policy: Fail  # Fail the sync if this job fails
+  labels:
+    {{- include "app.selectorLabels" . | nindent 4 }}
+spec:
+  backoffLimit: {{ .Values.runCommandsBeforeDeploy.backoffLimit }}
+  ttlSecondsAfterFinished: 600  # The job will be automatically deleted 600 seconds (10 minutes) after it is finished
+  template:
+    metadata:
+      labels:
+        db-migration: "true"
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+    spec:
+      {{- with .Values.deployment.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext: {}
+      restartPolicy: Never
+      containers:
+        - name: migrate-{{ include "app.name" . }}
+          image: "{{ .Values.deployment.image.repository }}:{{ .Values.deployment.image.tag }}"
+          imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
+          command:
+            {{-  range .Values.runCommandsBeforeDeploy.command }}
+            - {{ . }}
+            {{- end }}
+          args:
+          {{-  range .Values.runCommandsBeforeDeploy.args }}
+            - {{ . }}
+            {{- end }}
+{{- end }}
