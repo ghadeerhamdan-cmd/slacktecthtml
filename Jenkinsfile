@@ -27,10 +27,10 @@ node {
     
     stage("Get the app code") {
       checkout([$class: 'GitSCM', branches: [[name: "${branchName}"]] , extensions: [], userRemoteConfigs: [[ url: "${gitUrlCode}"]]])
-      sh "rm -rf ~/workspace/\"${JOB_NAME}\"/slashtec"
-      sh "mkdir ~/workspace/\"${JOB_NAME}\"/slashtec  ; cd slashtec ; git clone -b main ${gitUrl} "
-      sh("cp ${slashtecDir}/dockerfile/Dockerfile ${dockerfile}")
-      sh("cp ${slashtecDir}/index.html .")
+      sh "rm -rf slashtec"
+      sh "git clone -b main ${gitUrl} slashtec"
+      sh "cp slashtec/dockerfile/Dockerfile ${dockerfile}"
+      sh "cp slashtec/index.html ."
     }
     
     stage("Get the env variables from App") {
