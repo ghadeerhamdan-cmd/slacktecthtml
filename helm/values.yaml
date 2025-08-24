@@ -38,7 +38,7 @@ deployment:
   imagePullSecrets:
     - name: docker    ### if required
   image:
-    repository: ecr_url/slashtec-app
+    repository: 
     pullPolicy: Always
     tag: "dev-057533f-204"
   volumeMounts:
