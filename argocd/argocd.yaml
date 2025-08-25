@@ -11,6 +11,6 @@ spec:
    server: https://kubernetes.default.svc
  project: default
  source:
-   path: helm
+   path: main
    repoURL: https://github.com/ghadeerhamdan-cmd/slacktecthtml.git
    targetRevision: main
