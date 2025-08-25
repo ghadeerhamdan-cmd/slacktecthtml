@@ -32,7 +32,7 @@ deployment:
   image:
     repository: 727245885999.dkr.ecr.ap-south-1.amazonaws.com/ghadeerecr
     pullPolicy: Always
-    tag: "dev-13"
+    tag: "dev-15"
   livenessProbe:
     httpGet:
       path: /
