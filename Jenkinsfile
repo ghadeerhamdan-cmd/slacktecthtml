@@ -9,7 +9,7 @@ def ecrUrl         = "727245885999.dkr.ecr.ap-south-1.amazonaws.com"
 def dockerfile     = "Dockerfile"
 def imageTag       = "${EnvName}-${BUILD_NUMBER}"
 def ARGOCD_URL     = "https://127.0.0.1:8080/applications"
-def slashtecDir    = "slacktecthtml"
+
 // AppConfig Params
 def applicationName = "Task Test App"
 def envName = "dev"
@@ -27,10 +27,10 @@ node {
     
     stage("Get the app code") {
       checkout([$class: 'GitSCM', branches: [[name: "${branchName}"]] , extensions: [], userRemoteConfigs: [[ url: "${gitUrlCode}"]]])
-      sh "rm -rf slashtec"
-      sh "git clone -b main ${gitUrl} slashtec"
-      sh "cp slashtec/dockerfile/Dockerfile ${dockerfile}"
-      sh "cp slashtec/index.html ."
+      sh "rm -rf slacktecthtml"
+      sh "git clone -b main ${gitUrl} slacktecthtml"
+      sh "cp slacktecthtml/dockerfile/Dockerfile ${dockerfile}"
+      sh "cp slacktecthtml/index.html ."
     }
     
     stage('login to ecr') {
@@ -50,8 +50,8 @@ node {
     }
     
     stage("Deploy ${serviceName} to ${EnvName} Environment") {
-      sh("cd slashtec/${helmDir}; pathEnv=\".deployment.image.tag\" valueEnv=\"${imageTag}\" yq 'eval(strenv(pathEnv)) = strenv(valueEnv)' -i values.yaml ; cat values.yaml")
-      sh("cd slashtec/${helmDir}; git pull ; git add values.yaml; git commit -m 'update image tag' ;git push ${gitUrl}")
+      sh("cd slacktecthtml/${helmDir}; pathEnv=\".deployment.image.tag\" valueEnv=\"${imageTag}\" yq 'eval(strenv(pathEnv)) = strenv(valueEnv)' -i values.yaml ; cat values.yaml")
+      sh("cd slacktecthtml/${helmDir}; git pull ; git add values.yaml; git commit -m 'update image tag' ;git push ${gitUrl}")
     }
     
   } catch (e) {
