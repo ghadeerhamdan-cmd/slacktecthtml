@@ -27,14 +27,10 @@ node {
     
     stage("Get the app code") {
       checkout([$class: 'GitSCM', branches: [[name: "${branchName}"]] , extensions: [], userRemoteConfigs: [[ url: "${gitUrlCode}"]]])
-      sh "rm -rf slashtec"
-      sh "git clone -b main ${gitUrl} slashtec"
-      sh "cp slashtec/dockerfile/Dockerfile ${dockerfile}"
-      sh "cp slashtec/index.html ."
-    }
-    
-    stage("Get the env variables from App") {
-      sh "echo 'Skipping AWS AppConfig - running without environment variables'"
+      sh "rm -rf ${slashtecDir}"
+      sh "git clone -b main ${gitUrl} ${slashtecDir}"
+      sh "cp ${slashtecDir}/dockerfile/Dockerfile ${dockerfile}"
+      sh "cp ${slashtecDir}/index.html ."
     }
     
     stage('login to ecr') {
